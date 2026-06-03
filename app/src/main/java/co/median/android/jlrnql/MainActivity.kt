@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val webUrl = "https://sylheti.kamildex.com/"
-    private val shareMessage = "দেখে আসুন নতুন সিলেটি ট্রান্সলেটর" + System.lineSeparator() + "https://play.google.com/store/apps/details?id=co.median.android.jlrnql"
 
     private val networkReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -73,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                             true
                         }
                         url.startsWith("https://sylheti.kamildex.com") -> {
-                            false // Stay in WebView
+                            false
                         }
                         url.startsWith("http") -> {
                             openCustomTab(url)
@@ -90,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     binding.progressBar.hide()
 
-                    // Inject window.AppInventor — exactly like Kodular
+                    // window.AppInventor inject — website এর সাথে কাজ করবে
                     view?.evaluateJavascript("""
                         (function() {
                             window.AppInventor = {
@@ -129,7 +128,7 @@ class MainActivity : AppCompatActivity() {
     private fun shareApp() {
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, shareMessage)
+            putExtra(Intent.EXTRA_TEXT, "দেখে আসুন নতুন সিলেটি ট্রান্সলেটর\nhttps://play.google.com/store/apps/details?id=co.median.android.jlrnql")
         }
         startActivity(Intent.createChooser(shareIntent, "Share via"))
     }
