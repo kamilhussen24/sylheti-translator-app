@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     private fun shareApp() {
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "দেখে আসুন নতুন সিলেটি ট্রান্সলেটর\nhttps://play.google.com/store/apps/details?id=co.median.android.jlrnql")
+            putExtra(Intent.EXTRA_TEXT, "দেখে আসুন নতুন সিলেটি ট্রান্সলেটর https://play.google.com/store/apps/details?id=co.median.android.jlrnql")
         }
         startActivity(Intent.createChooser(shareIntent, "Share via"))
     }
