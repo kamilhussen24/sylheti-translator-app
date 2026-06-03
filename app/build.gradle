@@ -57,8 +57,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
-    // Browser (Chrome Custom Tabs)
+    // Lottie — No Network screen এর জন্য
+    implementation 'com.airbnb.android:lottie:6.3.0'
+
+    // Chrome Custom Tabs
     implementation 'androidx.browser:browser:1.7.0'
 }

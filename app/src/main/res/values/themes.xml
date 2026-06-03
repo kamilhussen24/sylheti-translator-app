@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="Theme.SylhetiTranslator" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
-        <item name="android:navigationBarColor">@color/navigation_bar</item>
+        <item name="android:navigationBarColor">@color/primary</item>
         <item name="android:windowBackground">@color/white</item>
     </style>
 
@@ -13,5 +12,4 @@
         <item name="android:windowBackground">@color/white</item>
         <item name="android:windowFullscreen">true</item>
     </style>
-
 </resources>

@@ -5,11 +5,8 @@
 .DS_Store
 /build
 /captures
-.externalNativeBuild
-.cxx
-local.properties
 
-# Keystore — NEVER commit this!
+# Keystore — NEVER commit!
 app/keystore/android.keystore
 keystore_base64.txt
 *.jks

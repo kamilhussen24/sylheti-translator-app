@@ -14,11 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      # ── 2. Java Setup ─────────────────────────────────────────────
       - name: ☕ Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -26,28 +24,21 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # ── 3. Gradle Wrapper Download ────────────────────────────────
       - name: 📦 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # ── 4. Gradle Permission ──────────────────────────────────────
       - name: 🔧 Grant Gradle permission
         run: chmod +x gradlew
 
-      # ── 5. Create keystore directory ──────────────────────────────
       - name: 📁 Create keystore dir
         run: mkdir -p app/keystore
 
-      # ── 6. Decode Keystore ────────────────────────────────────────
       - name: 🔑 Decode Keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore/android.keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore/android.keystore
 
-      # ── 7. Build Debug APK ────────────────────────────────────────
       - name: 🔨 Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      # ── 8. Build Release APK ──────────────────────────────────────
       - name: 🏗️ Build Release APK
         run: ./gradlew assembleRelease --stacktrace
         env:
@@ -55,7 +46,6 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # ── 9. Build Release AAB (Play Store) ─────────────────────────
       - name: 📦 Build Release AAB
         run: ./gradlew bundleRelease --stacktrace
         env:
@@ -63,7 +53,6 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # ── 10. Upload Debug APK ──────────────────────────────────────
       - name: 📤 Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -71,7 +60,6 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      # ── 11. Upload Release APK ────────────────────────────────────
       - name: 📤 Upload Release APK
         uses: actions/upload-artifact@v4
         with:
@@ -79,7 +67,6 @@ jobs:
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
-      # ── 12. Upload Release AAB ────────────────────────────────────
       - name: 📤 Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
@@ -87,12 +74,11 @@ jobs:
           path: app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
 
-      # ── 13. Build Summary ─────────────────────────────────────────
       - name: ✅ Build Summary
         run: |
           echo "## 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
-          echo "| Output | File |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔨 Debug APK | app-debug.apk |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📱 Release APK | app-release.apk |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏪 Release AAB | app-release.aab |" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Type |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| debug-apk | Testing |" >> $GITHUB_STEP_SUMMARY
+          echo "| release-apk | Direct Install |" >> $GITHUB_STEP_SUMMARY
+          echo "| release-aab | Play Store |" >> $GITHUB_STEP_SUMMARY

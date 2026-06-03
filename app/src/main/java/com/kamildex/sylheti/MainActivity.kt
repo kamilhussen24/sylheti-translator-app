@@ -1,4 +1,4 @@
-package co.median.android.jlrnql
+package com.kamildex.sylheti
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import co.median.android.jlrnql.R
 import co.median.android.jlrnql.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -37,12 +38,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setupWebView()
         handleDeepLink(intent)
-
-        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        registerReceiver(networkReceiver, filter)
+        registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
     }
 
     private fun setupWebView() {
@@ -62,22 +60,13 @@ class MainActivity : AppCompatActivity() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val url = request.url.toString()
                     return when {
-                        url.startsWith("app://share") -> {
-                            shareApp()
-                            true
-                        }
+                        url.startsWith("app://share") -> { shareApp(); true }
                         url.startsWith("app://openurl") -> {
                             val target = Uri.parse(url).getQueryParameter("url") ?: return false
-                            openCustomTab(target)
-                            true
+                            openCustomTab(target); true
                         }
-                        url.startsWith("https://sylheti.kamildex.com") -> {
-                            false
-                        }
-                        url.startsWith("http") -> {
-                            openCustomTab(url)
-                            true
-                        }
+                        url.startsWith("https://sylheti.kamildex.com") -> false
+                        url.startsWith("http") -> { openCustomTab(url); true }
                         else -> false
                     }
                 }
@@ -88,8 +77,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     binding.progressBar.hide()
-
-                    // window.AppInventor inject — website এর সাথে কাজ করবে
+                    // window.AppInventor inject — website এর share ও external link কাজ করবে
                     view?.evaluateJavascript("""
                         (function() {
                             window.AppInventor = {
@@ -117,8 +105,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleDeepLink(intent: Intent?) {
-        intent?.data?.let { uri ->
-            val url = uri.toString()
+        intent?.data?.toString()?.let { url ->
             if (url.contains("sylheti.kamildex.com")) {
                 binding.webView.loadUrl(url)
             }
@@ -135,12 +122,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun openCustomTab(url: String) {
         try {
-            val colorSchemeParams = CustomTabColorSchemeParams.Builder()
+            val params = CustomTabColorSchemeParams.Builder()
                 .setToolbarColor(ContextCompat.getColor(this, R.color.primary))
                 .build()
-
             CustomTabsIntent.Builder()
-                .setDefaultColorSchemeParams(colorSchemeParams)
+                .setDefaultColorSchemeParams(params)
                 .setShowTitle(true)
                 .build()
                 .launchUrl(this, Uri.parse(url))
@@ -150,11 +136,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (binding.webView.canGoBack()) {
-            binding.webView.goBack()
-        } else {
-            moveTaskToBack(true)
-        }
+        if (binding.webView.canGoBack()) binding.webView.goBack()
+        else moveTaskToBack(true)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -169,8 +152,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun isNetworkAvailable(): Boolean {
         val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = cm.activeNetwork ?: return false
-        val capabilities = cm.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        val net = cm.activeNetwork ?: return false
+        return cm.getNetworkCapabilities(net)
+            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 }
