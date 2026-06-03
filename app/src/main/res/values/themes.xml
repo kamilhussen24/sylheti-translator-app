@@ -10,6 +10,6 @@
 
     <style name="Theme.SylhetiTranslator.Splash" parent="Theme.SylhetiTranslator">
         <item name="android:windowBackground">@color/white</item>
-        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowFullscreen">false</item>
     </style>
 </resources>
