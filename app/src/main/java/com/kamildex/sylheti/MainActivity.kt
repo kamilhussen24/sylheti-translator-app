@@ -9,6 +9,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -34,6 +35,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── JavaScript Interface ──────────────────────────────────────
+    inner class AndroidBridge(private val context: Context) {
+
+        @JavascriptInterface
+        fun share() {
+            runOnUiThread { shareApp() }
+        }
+
+        @JavascriptInterface
+        fun openUrl(url: String) {
+            runOnUiThread { openCustomTab(url) }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -56,15 +71,13 @@ class MainActivity : AppCompatActivity() {
                 useWideViewPort = true
             }
 
+            // Professional JavaScript Interface — Google Official Standard
+            addJavascriptInterface(AndroidBridge(this@MainActivity), "Android")
+
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val url = request.url.toString()
                     return when {
-                        url.startsWith("app://share") -> { shareApp(); true }
-                        url.startsWith("app://openurl") -> {
-                            val target = Uri.parse(url).getQueryParameter("url") ?: return false
-                            openCustomTab(target); true
-                        }
                         url.startsWith("https://sylheti.kamildex.com") -> false
                         url.startsWith("http") -> { openCustomTab(url); true }
                         else -> false
@@ -77,20 +90,6 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     binding.progressBar.hide()
-                    // window.AppInventor inject — website এর share ও external link কাজ করবে
-                    view?.evaluateJavascript("""
-                        (function() {
-                            window.AppInventor = {
-                                setWebViewString: function(value) {
-                                    if (value === 'share') {
-                                        window.location.href = 'app://share';
-                                    } else {
-                                        window.location.href = 'app://openurl?url=' + encodeURIComponent(value);
-                                    }
-                                }
-                            };
-                        })();
-                    """.trimIndent(), null)
                 }
             }
 
