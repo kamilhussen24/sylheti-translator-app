@@ -1,0 +1,3 @@
+-keep class co.median.android.jlrnql.** { *; }
+-keepattributes *Annotation*
+-dontwarn okhttp3.**

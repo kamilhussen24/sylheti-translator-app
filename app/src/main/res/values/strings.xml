@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sylheti Translator</string>
+    <string name="no_internet">No Internet!</string>
+    <string name="check_connection">অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করুন।</string>
+    <string name="share_message">দেখে আসুন নতুন সিলেটি ট্রান্সলেটর\nhttps://play.google.com/store/apps/details?id=co.median.android.jlrnql</string>
+</resources>
