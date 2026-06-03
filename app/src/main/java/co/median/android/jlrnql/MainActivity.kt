@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity() {
         setupWebView()
         handleDeepLink(intent)
 
-        // Register network disconnect listener
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(networkReceiver, filter)
     }
@@ -63,52 +62,8 @@ class MainActivity : AppCompatActivity() {
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val url = request.url.toString()
-                    return if (url.startsWith("https://sylheti.kamildex.com")) {
-                        false // Load inside WebView
-                    } else {
-                        openCustomTab(url)
-                        true
-                    }
-                }
-
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    super.onPageStarted(view, url, favicon)
-                    binding.progressBar.show()
-                }
-
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    binding.progressBar.hide()
-
-                    // Inject JavaScript bridge for share functionality
-                    view?.evaluateJavascript("""
-                        (function() {
-                            window.AndroidBridge = {
-                                share: function() {
-                                    window.location.href = 'app://share';
-                                },
-                                openUrl: function(url) {
-                                    window.location.href = 'app://openurl?url=' + encodeURIComponent(url);
-                                }
-                            };
-                        })();
-                    """.trimIndent(), null)
-                }
-            }
-
-            webChromeClient = object : WebChromeClient() {
-                override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                    super.onProgressChanged(view, newProgress)
-                    binding.progressBar.progress = newProgress
-                }
-            }
-
-            // Handle app:// scheme for share/openurl from web
-            webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                    val url = request.url.toString()
                     return when {
-                        url == "app://share" || url.contains("share") && !url.contains("http") -> {
+                        url.startsWith("app://share") -> {
                             shareApp()
                             true
                         }
@@ -134,6 +89,27 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     binding.progressBar.hide()
+
+                    // Inject window.AppInventor — exactly like Kodular
+                    view?.evaluateJavascript("""
+                        (function() {
+                            window.AppInventor = {
+                                setWebViewString: function(value) {
+                                    if (value === 'share') {
+                                        window.location.href = 'app://share';
+                                    } else {
+                                        window.location.href = 'app://openurl?url=' + encodeURIComponent(value);
+                                    }
+                                }
+                            };
+                        })();
+                    """.trimIndent(), null)
+                }
+            }
+
+            webChromeClient = object : WebChromeClient() {
+                override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                    binding.progressBar.progress = newProgress
                 }
             }
 
@@ -170,8 +146,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
                 .launchUrl(this, Uri.parse(url))
         } catch (e: Exception) {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(browserIntent)
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
     }
 
@@ -190,11 +165,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            unregisterReceiver(networkReceiver)
-        } catch (e: Exception) {
-            // Already unregistered
-        }
+        try { unregisterReceiver(networkReceiver) } catch (e: Exception) {}
     }
 
     private fun isNetworkAvailable(): Boolean {
