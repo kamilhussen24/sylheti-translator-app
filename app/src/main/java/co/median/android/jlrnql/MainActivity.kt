@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val webUrl = "https://sylheti.kamildex.com/"
-    private val shareMessage = "দেখে আসুন নতুন সিলেটি ট্রান্সলেটর\nhttps://play.google.com/store/apps/details?id=co.median.android.jlrnql"
+    private val shareMessage = "দেখে আসুন নতুন সিলেটি ট্রান্সলেটর" + System.lineSeparator() + "https://play.google.com/store/apps/details?id=co.median.android.jlrnql"
 
     private val networkReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
