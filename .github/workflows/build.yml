@@ -4,11 +4,9 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      version_name:
-        description: 'Version Name (e.g. 3.1.1)'
-        required: false
-        default: ''
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -28,36 +26,44 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # ── 3. Gradle Permission ──────────────────────────────────────
+      # ── 3. Gradle Wrapper Download ────────────────────────────────
+      - name: 📦 Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # ── 4. Gradle Permission ──────────────────────────────────────
       - name: 🔧 Grant Gradle permission
         run: chmod +x gradlew
 
-      # ── 4. Decode Keystore ────────────────────────────────────────
+      # ── 5. Create keystore directory ──────────────────────────────
+      - name: 📁 Create keystore dir
+        run: mkdir -p app/keystore
+
+      # ── 6. Decode Keystore ────────────────────────────────────────
       - name: 🔑 Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore/android.keystore
 
-      # ── 5. Build Debug APK ────────────────────────────────────────
+      # ── 7. Build Debug APK ────────────────────────────────────────
       - name: 🔨 Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
-      # ── 6. Build Release APK ──────────────────────────────────────
+      # ── 8. Build Release APK ──────────────────────────────────────
       - name: 🏗️ Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --stacktrace
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # ── 7. Build Release AAB (Play Store) ─────────────────────────
+      # ── 9. Build Release AAB (Play Store) ─────────────────────────
       - name: 📦 Build Release AAB
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleRelease --stacktrace
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # ── 8. Upload Debug APK ───────────────────────────────────────
+      # ── 10. Upload Debug APK ──────────────────────────────────────
       - name: 📤 Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -65,7 +71,7 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      # ── 9. Upload Release APK ─────────────────────────────────────
+      # ── 11. Upload Release APK ────────────────────────────────────
       - name: 📤 Upload Release APK
         uses: actions/upload-artifact@v4
         with:
@@ -73,7 +79,7 @@ jobs:
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
-      # ── 10. Upload Release AAB ────────────────────────────────────
+      # ── 12. Upload Release AAB ────────────────────────────────────
       - name: 📤 Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
@@ -81,13 +87,12 @@ jobs:
           path: app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
 
-      # ── 11. Build Summary ─────────────────────────────────────────
+      # ── 13. Build Summary ─────────────────────────────────────────
       - name: ✅ Build Summary
         run: |
           echo "## 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Output | Path |" >> $GITHUB_STEP_SUMMARY
+          echo "| Output | File |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔨 Debug APK | app/build/outputs/apk/debug/ |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📱 Release APK | app/build/outputs/apk/release/ |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏪 Release AAB | app/build/outputs/bundle/release/ |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔨 Debug APK | app-debug.apk |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📱 Release APK | app-release.apk |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏪 Release AAB | app-release.aab |" >> $GITHUB_STEP_SUMMARY
