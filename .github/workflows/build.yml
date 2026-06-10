@@ -1,9 +1,17 @@
 name: 🚀 Build & Release Sylheti Translator
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'What to build?'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+          - both
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -30,16 +38,30 @@ jobs:
       - name: 🔧 Grant Gradle permission
         run: chmod +x gradlew
 
+      # ── Debug APK (no keystore needed) ───────────────────────────
+      - name: 🔨 Build Debug APK
+        if: inputs.build_type == 'debug' || inputs.build_type == 'both'
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: 📤 Upload Debug APK
+        if: inputs.build_type == 'debug' || inputs.build_type == 'both'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      # ── Release APK + AAB (keystore required) ────────────────────
       - name: 📁 Create keystore dir
+        if: inputs.build_type == 'release' || inputs.build_type == 'both'
         run: mkdir -p app/keystore
 
       - name: 🔑 Decode Keystore
+        if: inputs.build_type == 'release' || inputs.build_type == 'both'
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore/android.keystore
 
-      - name: 🔨 Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
-
       - name: 🏗️ Build Release APK
+        if: inputs.build_type == 'release' || inputs.build_type == 'both'
         run: ./gradlew assembleRelease --stacktrace
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
@@ -47,20 +69,15 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: 📦 Build Release AAB
+        if: inputs.build_type == 'release' || inputs.build_type == 'both'
         run: ./gradlew bundleRelease --stacktrace
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: 📤 Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
-
       - name: 📤 Upload Release APK
+        if: inputs.build_type == 'release' || inputs.build_type == 'both'
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
@@ -68,6 +85,7 @@ jobs:
           retention-days: 30
 
       - name: 📤 Upload Release AAB
+        if: inputs.build_type == 'release' || inputs.build_type == 'both'
         uses: actions/upload-artifact@v4
         with:
           name: release-aab
